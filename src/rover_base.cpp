@@ -60,6 +60,7 @@ class WheelSpeedCalculator : public rclcpp::Node
     private:
         double vel_left = 0;
         double vel_right = 0;
+        int linear_scaler = 1000;
 
         rclcpp::Subscription<geometry_msgs::msg::Twist>::SharedPtr subscription_twist;
         rclcpp::Publisher<std_msgs::msg::UInt8>::SharedPtr publisher_0;
@@ -75,8 +76,8 @@ class WheelSpeedCalculator : public rclcpp::Node
             std::cout << "Linear x: " << msg->linear.x << std::endl;
             std::cout << "Angular z: " << msg->angular.z << std::endl;
             double track_width = this->get_parameter("track_width").as_double();
-            vel_left = msg->linear.x - (msg->angular.z * track_width / 2);
-            vel_right = msg->linear.x + (msg->angular.z * track_width / 2);
+            vel_left = (msg->linear.x * linear_scaler) - (msg->angular.z * track_width / 2);
+            vel_right = (msg->linear.x * linear_scaler) + (msg->angular.z * track_width / 2);
 
             auto message_left = std_msgs::msg::UInt8();
             message_left.data = mapToPwm(vel_left);
