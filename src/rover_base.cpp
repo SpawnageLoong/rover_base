@@ -3,6 +3,7 @@
 #include "rclcpp/rclcpp.hpp"
 #include "std_msgs/msg/u_int8.hpp"
 #include "geometry_msgs/msg/twist.hpp"
+#include "rover_interfaces/msg/pwm_array.hpp"
 
 class WheelSpeedCalculator : public rclcpp::Node
 {
