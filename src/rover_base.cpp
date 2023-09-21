@@ -32,6 +32,7 @@ class WheelSpeedCalculator : public rclcpp::Node
         double vel_left = 0;
         double vel_right = 0;
         int linear_scaler = 1000;
+        int max_vel = 1000;
 
         rclcpp::Subscription<geometry_msgs::msg::Twist>::SharedPtr subscription_twist;
         rclcpp::Publisher<rover_interfaces::msg::PwmArray>::SharedPtr publisher_;
@@ -58,7 +59,7 @@ class WheelSpeedCalculator : public rclcpp::Node
 
         int16_t mapToPwm(double vel)
         {
-            return (int16_t) (vel * 255 / 100);
+            return (int16_t) (vel * 255 / max_vel);
         }
 };
 
