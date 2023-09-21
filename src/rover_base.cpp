@@ -11,12 +11,7 @@ class WheelSpeedCalculator : public rclcpp::Node
         WheelSpeedCalculator()
         : Node("wheel_speed_calculator")
         {
-            this->declare_parameter("topic0_name", "/motors_pwm/motor0");
-            this->declare_parameter("topic1_name", "/motors_pwm/motor1");
-            this->declare_parameter("topic2_name", "/motors_pwm/motor2");
-            this->declare_parameter("topic3_name", "/motors_pwm/motor3");
-            this->declare_parameter("topic4_name", "/motors_pwm/motor4");
-            this->declare_parameter("topic5_name", "/motors_pwm/motor5");
+            this->declare_parameter("pwm_array_topic_name", "/motors_pwm");
             this->declare_parameter("twist_topic_name", "/cmd_vel");
             this->declare_parameter("track_width", 600.0);
 
@@ -27,34 +22,9 @@ class WheelSpeedCalculator : public rclcpp::Node
                     std::bind(&WheelSpeedCalculator::twist_callback, this, std::placeholders::_1)
                 );
 
-            publisher_0 =
-                this->create_publisher<std_msgs::msg::UInt8>(
-                    this->get_parameter("topic0_name").as_string(),
-                    rclcpp::SensorDataQoS()
-                );
-            publisher_1 =
-                this->create_publisher<std_msgs::msg::UInt8>(
-                    this->get_parameter("topic1_name").as_string(),
-                    rclcpp::SensorDataQoS()
-                );
-            publisher_2 =
-                this->create_publisher<std_msgs::msg::UInt8>(
-                    this->get_parameter("topic2_name").as_string(),
-                    rclcpp::SensorDataQoS()
-                );
-            publisher_3 =
-                this->create_publisher<std_msgs::msg::UInt8>(
-                    this->get_parameter("topic3_name").as_string(),
-                    rclcpp::SensorDataQoS()
-                );
-            publisher_4 =
-                this->create_publisher<std_msgs::msg::UInt8>(
-                    this->get_parameter("topic4_name").as_string(),
-                    rclcpp::SensorDataQoS()
-                );
-            publisher_5 =
-                this->create_publisher<std_msgs::msg::UInt8>(
-                    this->get_parameter("topic5_name").as_string(),
+            publisher_ =
+                this->create_publisher<rover_interfaces::msg::PwmArray>(
+                    this->get_parameter("pwm_array_topic_name").as_string(),
                     rclcpp::SensorDataQoS()
                 );
         }
@@ -64,12 +34,7 @@ class WheelSpeedCalculator : public rclcpp::Node
         int linear_scaler = 1000;
 
         rclcpp::Subscription<geometry_msgs::msg::Twist>::SharedPtr subscription_twist;
-        rclcpp::Publisher<std_msgs::msg::UInt8>::SharedPtr publisher_0;
-        rclcpp::Publisher<std_msgs::msg::UInt8>::SharedPtr publisher_1;
-        rclcpp::Publisher<std_msgs::msg::UInt8>::SharedPtr publisher_2;
-        rclcpp::Publisher<std_msgs::msg::UInt8>::SharedPtr publisher_3;
-        rclcpp::Publisher<std_msgs::msg::UInt8>::SharedPtr publisher_4;
-        rclcpp::Publisher<std_msgs::msg::UInt8>::SharedPtr publisher_5;
+        rclcpp::Publisher<rover_interfaces::msg::PwmArray>::SharedPtr publisher_;
 
         void twist_callback(const geometry_msgs::msg::Twist::SharedPtr msg)
         {
@@ -80,22 +45,20 @@ class WheelSpeedCalculator : public rclcpp::Node
             vel_left = (msg->linear.x * linear_scaler) - (msg->angular.z * track_width / 2);
             vel_right = (msg->linear.x * linear_scaler) + (msg->angular.z * track_width / 2);
 
-            auto message_left = std_msgs::msg::UInt8();
-            message_left.data = mapToPwm(vel_left);
-            auto message_right = std_msgs::msg::UInt8();
-            message_right.data = mapToPwm(vel_right);
+            auto message = rover_interfaces::msg::PwmArray();
+            message.pwm0 = mapToPwm(vel_left);
+            message.pwm1 = mapToPwm(vel_left);
+            message.pwm2 = mapToPwm(vel_left);
+            message.pwm3 = mapToPwm(vel_right);
+            message.pwm4 = mapToPwm(vel_right);
+            message.pwm5 = mapToPwm(vel_right);
 
-            publisher_0->publish(message_left);
-            publisher_1->publish(message_left);
-            publisher_2->publish(message_left);
-            publisher_3->publish(message_right);
-            publisher_4->publish(message_right);
-            publisher_5->publish(message_right);
+            publisher_->publish(message);
         }
 
-        uint8_t mapToPwm(double vel)
+        int16_t mapToPwm(double vel)
         {
-            return (uint8_t) (vel * 255 / 100);
+            return (int16_t) (vel * 255 / 100);
         }
 };
 
