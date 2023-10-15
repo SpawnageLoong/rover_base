@@ -13,7 +13,8 @@ class WheelSpeedCalculator : public rclcpp::Node
         {
             this->declare_parameter("pwm_array_topic_name", "/motors_pwm");
             this->declare_parameter("twist_topic_name", "/cmd_vel");
-            this->declare_parameter("track_width", 600.0);
+            this->declare_parameter("track_width", 893.83);
+            this->declare_parameter("max_vel", 2924);
 
             subscription_twist =
                 this->create_subscription<geometry_msgs::msg::Twist>(
@@ -32,7 +33,6 @@ class WheelSpeedCalculator : public rclcpp::Node
         double vel_left = 0;
         double vel_right = 0;
         int linear_scaler = 1000;
-        int max_vel = 1000;
 
         rclcpp::Subscription<geometry_msgs::msg::Twist>::SharedPtr subscription_twist;
         rclcpp::Publisher<rover_interfaces::msg::PwmArray>::SharedPtr publisher_;
@@ -59,6 +59,7 @@ class WheelSpeedCalculator : public rclcpp::Node
 
         int16_t mapToPwm(double vel)
         {
+            int max_vel = this->get_parameter("max_vel").as_int();
             return (int16_t) (vel * 255 / max_vel);
         }
 };
